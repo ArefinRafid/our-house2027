@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#111827">
+<title>Our House — Expense Tracker</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#f3f4f6;color:#111827}
+header{background:#111827;color:white;padding:22px 18px;position:sticky;top:0;z-index:2}h1{margin:0;font-size:22px}header p{margin:4px 0 0;color:#cbd5e1;font-size:13px}
+main{max-width:760px;margin:auto;padding:16px 14px 40px}.cards{display:grid;grid-template-columns:1fr 1fr;gap:10px}.card{background:white;border-radius:16px;padding:15px;box-shadow:0 2px 10px #0000000b}.label{font-size:12px;color:#64748b}.value{font-size:23px;font-weight:800;margin-top:5px}
+button,input,select,textarea{font:inherit}button{border:0;border-radius:12px;padding:11px 14px;cursor:pointer;font-weight:700}.primary{background:#111827;color:white}.secondary{background:#e5e7eb}.danger{background:#fee2e2;color:#991b1b}
+.section{margin-top:18px}.section h2{font-size:17px;margin:0 0 10px}.members{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.member{background:white;padding:12px;border-radius:13px}.member b{display:block}.pos{color:#15803d}.neg{color:#b91c1c}
+.actions{display:flex;gap:8px;flex-wrap:wrap}.expense{background:white;border-radius:14px;padding:13px;margin:9px 0;display:flex;justify-content:space-between;gap:12px}.expense small{color:#64748b}.amount{font-weight:800;white-space:nowrap}
+.overlay{display:none;position:fixed;inset:0;background:#0008;z-index:5;padding:14px;overflow:auto}.modal{background:white;max-width:600px;margin:30px auto;border-radius:18px;padding:18px}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.field{margin:10px 0}.field label{display:block;font-size:12px;color:#475569;margin-bottom:5px}.field input,.field select,.field textarea{width:100%;padding:11px;border:1px solid #d1d5db;border-radius:10px}.field textarea{min-height:70px}.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}.receipt{max-width:100%;max-height:180px;border-radius:10px;margin-top:8px}
+@media(max-width:520px){.members{grid-template-columns:repeat(2,1fr)}.row{grid-template-columns:1fr}.cards{grid-template-columns:1fr 1fr}}
+</style>
+<link rel="manifest" href="manifest.webmanifest"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Our House"><meta name="theme-color" content="#111827"></head>
+<body>
+<header><h1>🏠 OUR HOUSE</h1><p>Offline expense & পাওনা tracker</p></header>
+<main>
+<section class="cards">
+<div class="card"><div class="label">Total Expense</div><div id="total" class="value">৳0</div></div>
+<div class="card"><div class="label">Transactions</div><div id="count" class="value">0</div></div>
+</section>
+
+<section class="section">
+<h2>👥 Members & Balance</h2><div id="members" class="members"></div>
+</section>
+
+<section class="section">
+<div class="actions"><button class="primary" onclick="openModal()">＋ Add Expense</button><button class="secondary" onclick="exportData()">Backup</button><button class="secondary" onclick="importFile.click()">Restore</button><button class="danger" onclick="clearAll()">Clear All</button></div>
+<input id="importFile" type="file" accept=".json" hidden>
+</section>
+
+<section class="section"><h2>💸 Who owes whom</h2><div id="debts"></div></section>
+<section class="section"><h2>📜 Expense History</h2><div id="history"></div></section>
+</main>
+
+<div id="overlay" class="overlay">
+<div class="modal">
+<h2 id="modalTitle">Add Expense</h2>
+<div class="row">
+<div class="field"><label>Paid by</label><select id="payer"></select></div>
+<div class="field"><label>Amount (৳)</label><input id="amount" type="number" min="0" step="0.01"></div>
+</div>
+<div class="field"><label>For whom (select one or more)</label><div id="forPeople"></div></div>
+<div class="field"><label>What for?</label><input id="reason" placeholder="e.g. বাজার, rent, dinner"></div>
+<div class="row">
+<div class="field"><label>Date</label><input id="date" type="date"></div>
+<div class="field"><label>Note</label><input id="note" placeholder="Optional"></div>
+</div>
+<div class="field"><label>Receipt / Bill photo</label><input id="photo" type="file" accept="image/*" capture="environment"><img id="preview" class="receipt" hidden></div>
+<div class="modal-actions"><button class="secondary" onclick="closeModal()">Cancel</button><button class="primary" onclick="saveExpense()">Save</button></div>
+</div></div>
+
+<script>
+const members=["RAFID","MOMIN","SEFINE","RAFAT","KAYES","MAHI"];
+let data=JSON.parse(localStorage.getItem("houseExpenses")||"[]"), editing=null, photoData=null;
+const $=id=>document.getElementById(id);
+function money(n){return "৳"+Number(n).toLocaleString("en-BD",{maximumFractionDigits:2})}
+function save(){localStorage.setItem("houseExpenses",JSON.stringify(data))}
+function init(){
+  $("payer").innerHTML=members.map((m,i)=>`<option value="${i}">${m}</option>`).join("");
+  $("forPeople").innerHTML=members.map((m,i)=>`<label style="display:inline-block;margin:4px 8px 4px 0"><input type="checkbox" value="${i}"> ${m}</label>`).join("");
+  $("date").value=new Date().toISOString().slice(0,10); render();
+}
+function render(){
+  const total=data.reduce((s,e)=>s+e.amount,0); $("total").textContent=money(total); $("count").textContent=data.length;
+  let bal=members.map(()=>0);
+  data.forEach(e=>{bal[e.payer]+=e.amount; e.people.forEach(i=>bal[i]-=e.amount/e.people.length)});
+  $("members").innerHTML=members.map((m,i)=>`<div class="member"><b>${m}</b><span class="${bal[i]>=0?'pos':'neg'}">${bal[i]>=0?'Gets ':'Pays '}${money(Math.abs(bal[i]))}</span></div>`).join("");
+  // Greedy settlement from net balances
+  let creditors=bal.map((v,i)=>({i,v})).filter(x=>x.v>0.005).sort((a,b)=>b.v-a.v);
+  let debtors=bal.map((v,i)=>({i,v:-v})).filter(x=>x.v>0.005).sort((a,b)=>b.v-a.v);
+  let out=[];
+  while(creditors.length&&debtors.length){
+    let c=creditors[0],d=debtors[0],x=Math.min(c.v,d.v);
+    out.push(`<div class="card" style="margin:7px 0"><b>${members[d.i]} → ${members[c.i]}</b> <span class="amount">${money(x)}</span></div>`);
+    c.v-=x; d.v-=x; if(c.v<.01)creditors.shift(); if(d.v<.01)debtors.shift();
+  }
+  $("debts").innerHTML=out.join("")||'<div class="card">সবাই settled 🎉</div>';
+  $("history").innerHTML=data.slice().reverse().map((e,idx)=>{
+    const real=data.length-1-idx;
+    return `<div class="expense"><div><b>${e.reason||"Expense"}</b><br><small>${e.date} · Paid by ${members[e.payer]} · For ${e.people.map(i=>members[i]).join(", ")}</small>${e.note?`<br><small>${e.note}</small>`:""}${e.photo?`<br><img class="receipt" src="${e.photo}">`:""}</div><div><div class="amount">${money(e.amount)}</div><button class="secondary" onclick="editExpense(${real})">Edit</button> <button class="danger" onclick="deleteExpense(${real})">Delete</button></div></div>`
+  }).join("")||'<div class="card">No expenses yet.</div>';
+}
+function openModal(index=null){
+ editing=index; photoData=null; $("preview").hidden=true; $("modalTitle").textContent=index===null?"Add Expense":"Edit Expense";
+ if(index!==null){let e=data[index];$("payer").value=e.payer;$("amount").value=e.amount;$("reason").value=e.reason;$("date").value=e.date;$("note").value=e.note||"";document.querySelectorAll("#forPeople input").forEach(x=>x.checked=e.people.includes(+x.value)); if(e.photo){$("preview").src=e.photo;$("preview").hidden=false;photoData=e.photo}}
+ else{$("amount").value="";$("reason").value="";$("note").value="";document.querySelectorAll("#forPeople input").forEach(x=>x.checked=false)}
+ $("overlay").style.display="block";
+}
+function closeModal(){$("overlay").style.display="none"}
+$("photo").addEventListener("change",e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{$("preview").src=r.result;$("preview").hidden=false;photoData=r.result};r.readAsDataURL(f)});
+function saveExpense(){
+ let people=[...document.querySelectorAll("#forPeople input:checked")].map(x=>+x.value), amount=Number($("amount").value);
+ if(!amount||amount<0||!people.length){alert("Amount এবং অন্তত একজন person নির্বাচন করুন.");return}
+ let e={payer:+$("payer").value,amount,people,reason:$("reason").value.trim(),date:$("date").value,note:$("note").value.trim(),photo:photoData};
+ if(editing===null)data.push(e);else data[editing]=e; save(); closeModal(); render();
+}
+function editExpense(i){openModal(i)}
+function deleteExpense(i){if(confirm("Delete this expense?")){data.splice(i,1);save();render()}}
+function clearAll(){if(confirm("সব expense মুছে ফেলবেন?")){data=[];save();render()}}
+function exportData(){let blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="our-house-backup.json";a.click()}
+$("importFile").addEventListener("change",e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{data=JSON.parse(r.result);save();render();alert("Restored successfully")}catch{alert("Invalid backup file")}};r.readAsText(f)});
+init();
+</script>
+<script>if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(console.error));}</script></body>
+</html>
