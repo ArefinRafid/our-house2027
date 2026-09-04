@@ -1,110 +1,88 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#111827">
-<title>Our House — Expense Tracker</title>
+<!doctype html><html><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111827"><meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Our House"><link rel="manifest" href="manifest.webmanifest">
+<title>Our House</title>
 <style>
-*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#f3f4f6;color:#111827}
-header{background:#111827;color:white;padding:22px 18px;position:sticky;top:0;z-index:2}h1{margin:0;font-size:22px}header p{margin:4px 0 0;color:#cbd5e1;font-size:13px}
-main{max-width:760px;margin:auto;padding:16px 14px 40px}.cards{display:grid;grid-template-columns:1fr 1fr;gap:10px}.card{background:white;border-radius:16px;padding:15px;box-shadow:0 2px 10px #0000000b}.label{font-size:12px;color:#64748b}.value{font-size:23px;font-weight:800;margin-top:5px}
-button,input,select,textarea{font:inherit}button{border:0;border-radius:12px;padding:11px 14px;cursor:pointer;font-weight:700}.primary{background:#111827;color:white}.secondary{background:#e5e7eb}.danger{background:#fee2e2;color:#991b1b}
-.section{margin-top:18px}.section h2{font-size:17px;margin:0 0 10px}.members{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.member{background:white;padding:12px;border-radius:13px}.member b{display:block}.pos{color:#15803d}.neg{color:#b91c1c}
-.actions{display:flex;gap:8px;flex-wrap:wrap}.expense{background:white;border-radius:14px;padding:13px;margin:9px 0;display:flex;justify-content:space-between;gap:12px}.expense small{color:#64748b}.amount{font-weight:800;white-space:nowrap}
-.overlay{display:none;position:fixed;inset:0;background:#0008;z-index:5;padding:14px;overflow:auto}.modal{background:white;max-width:600px;margin:30px auto;border-radius:18px;padding:18px}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.field{margin:10px 0}.field label{display:block;font-size:12px;color:#475569;margin-bottom:5px}.field input,.field select,.field textarea{width:100%;padding:11px;border:1px solid #d1d5db;border-radius:10px}.field textarea{min-height:70px}.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}.receipt{max-width:100%;max-height:180px;border-radius:10px;margin-top:8px}
-@media(max-width:520px){.members{grid-template-columns:repeat(2,1fr)}.row{grid-template-columns:1fr}.cards{grid-template-columns:1fr 1fr}}
-</style>
-<link rel="manifest" href="manifest.webmanifest"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Our House"><meta name="theme-color" content="#111827"></head>
-<body>
-<header><h1>🏠 OUR HOUSE</h1><p>Offline expense & পাওনা tracker</p></header>
+*{box-sizing:border-box}body{margin:0;background:#f3f4f6;color:#111827;font-family:system-ui,-apple-system,sans-serif}
+header{background:#111827;color:#fff;padding:20px 16px;position:sticky;top:0;z-index:3}header h1{margin:0}header p{margin:4px 0 0;color:#cbd5e1;font-size:13px}
+main{max-width:820px;margin:auto;padding:14px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.card,.item{background:#fff;border-radius:15px;padding:14px;box-shadow:0 2px 10px #0001}.big{font-size:22px;font-weight:800}.muted{font-size:12px;color:#64748b}
+section{margin:16px 0}h2{font-size:17px}button,input,select{font:inherit}button{border:0;border-radius:11px;padding:10px 13px;font-weight:700}.primary{background:#111827;color:#fff}.secondary{background:#e5e7eb}.danger{background:#fee2e2;color:#991b1b}
+.actions{display:flex;gap:8px;flex-wrap:wrap}.members{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.member{background:#fff;border-radius:13px;padding:11px}.good{color:#15803d}.bad{color:#b91c1c}
+.item{margin:8px 0;display:flex;justify-content:space-between;gap:10px}.amount{font-weight:800;white-space:nowrap}.receipt{max-width:150px;max-height:130px;border-radius:9px;margin-top:7px}
+nav{display:flex;gap:7px;overflow:auto}nav button{white-space:nowrap}.hidden{display:none!important}
+.overlay{display:none;position:fixed;inset:0;background:#0008;z-index:10;padding:12px;overflow:auto}.modal{background:#fff;max-width:600px;margin:25px auto;border-radius:18px;padding:17px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:9px}.field{margin:9px 0}.field label{display:block;font-size:12px;color:#475569;margin-bottom:4px}.field input,.field select{width:100%;padding:10px;border:1px solid #d1d5db;border-radius:10px}.checks label{display:inline-block;margin:4px 8px 4px 0}
+.bar{height:9px;background:#e5e7eb;border-radius:9px;overflow:hidden}.bar i{display:block;height:100%;background:#111827}
+@media(max-width:550px){.members{grid-template-columns:1fr 1fr}.row{grid-template-columns:1fr}}
+</style></head><body>
+<header><h1>🏠 OUR HOUSE</h1><p id="status">Offline-first</p></header>
 <main>
-<section class="cards">
-<div class="card"><div class="label">Total Expense</div><div id="total" class="value">৳0</div></div>
-<div class="card"><div class="label">Transactions</div><div id="count" class="value">0</div></div>
-</section>
-
-<section class="section">
-<h2>👥 Members & Balance</h2><div id="members" class="members"></div>
-</section>
-
-<section class="section">
-<div class="actions"><button class="primary" onclick="openModal()">＋ Add Expense</button><button class="secondary" onclick="exportData()">Backup</button><button class="secondary" onclick="importFile.click()">Restore</button><button class="danger" onclick="clearAll()">Clear All</button></div>
-<input id="importFile" type="file" accept=".json" hidden>
-</section>
-
-<section class="section"><h2>💸 Who owes whom</h2><div id="debts"></div></section>
-<section class="section"><h2>📜 Expense History</h2><div id="history"></div></section>
+<nav><button class="primary" onclick="tab('home')">Dashboard</button><button class="secondary" onclick="tab('history')">History</button><button class="secondary" onclick="tab('report')">Reports</button><button class="secondary" onclick="tab('settings')">Settings</button></nav>
+<div id="home">
+<section><div class="grid"><div class="card"><div class="muted">Total Expense</div><div id="total" class="big">৳0</div></div><div class="card"><div class="muted">Transactions</div><div id="count" class="big">0</div></div></div></section>
+<section><h2>👥 Members & Balance</h2><div id="members" class="members"></div></section>
+<section><h2>💸 Smart Settlement</h2><div id="debts"></div></section>
+<section class="actions"><button class="primary" onclick="expenseModal()">＋ Add Expense</button><button class="secondary" onclick="paymentModal()">✅ Record Payment</button></section>
+</div>
+<div id="history" class="hidden"><section><h2>📜 History</h2><input id="search" placeholder="Search..." oninput="renderHistory()"><div id="historyList"></div></section></div>
+<div id="report" class="hidden"><section><h2>📊 Monthly Report</h2><input id="month" type="month" onchange="renderReport"><div id="reportList"></div></section></div>
+<div id="settings" class="hidden"><section><h2>🔄 6-phone Sync</h2><p class="muted">Same House Code on all devices. Firebase setup is required; see README.</p><input id="houseCode" placeholder="House Code"><br><br><button class="primary" onclick="connect()">Connect / Sync</button></section>
+<section><h2>🔐 Local PIN</h2><input id="pin" type="password" inputmode="numeric" maxlength="6" placeholder="4–6 digit PIN"><button class="secondary" onclick="setPin()">Set PIN</button></section>
+<section><h2>👤 Members</h2><div id="memberSettings"></div></section>
+<section><h2>💾 Backup</h2><button class="secondary" onclick="backup()">Export JSON</button> <button class="secondary" onclick="file.click()">Import JSON</button><input id="file" type="file" accept=".json" hidden></section></div>
 </main>
 
-<div id="overlay" class="overlay">
-<div class="modal">
-<h2 id="modalTitle">Add Expense</h2>
-<div class="row">
-<div class="field"><label>Paid by</label><select id="payer"></select></div>
-<div class="field"><label>Amount (৳)</label><input id="amount" type="number" min="0" step="0.01"></div>
-</div>
-<div class="field"><label>For whom (select one or more)</label><div id="forPeople"></div></div>
-<div class="field"><label>What for?</label><input id="reason" placeholder="e.g. বাজার, rent, dinner"></div>
-<div class="row">
-<div class="field"><label>Date</label><input id="date" type="date"></div>
-<div class="field"><label>Note</label><input id="note" placeholder="Optional"></div>
-</div>
-<div class="field"><label>Receipt / Bill photo</label><input id="photo" type="file" accept="image/*" capture="environment"><img id="preview" class="receipt" hidden></div>
-<div class="modal-actions"><button class="secondary" onclick="closeModal()">Cancel</button><button class="primary" onclick="saveExpense()">Save</button></div>
-</div></div>
+<div id="modal" class="overlay"><div class="modal"><h2 id="mtitle">Add Expense</h2>
+<div class="row"><div class="field"><label>Paid by</label><select id="payer"></select></div><div class="field"><label>Amount</label><input id="amount" type="number" min="0"></div></div>
+<div class="field"><label>Split between</label><div id="people" class="checks"></div></div>
+<div class="field"><label>What for?</label><input id="reason"></div><div class="row"><div class="field"><label>Date</label><input id="date" type="date"></div><div class="field"><label>Note</label><input id="note"></div></div>
+<div class="field"><label>Bill photo</label><input id="photo" type="file" accept="image/*" capture="environment"><img id="preview" class="receipt hidden"></div>
+<button class="secondary" onclick="closeModal()">Cancel</button> <button class="primary" onclick="saveExpense()">Save</button></div></div>
 
-<script>
-const members=["RAFID","MOMIN","SEFINE","RAFAT","KAYES","MAHI"];
-let data=JSON.parse(localStorage.getItem("houseExpenses")||"[]"), editing=null, photoData=null;
-const $=id=>document.getElementById(id);
-function money(n){return "৳"+Number(n).toLocaleString("en-BD",{maximumFractionDigits:2})}
-function save(){localStorage.setItem("houseExpenses",JSON.stringify(data))}
-function init(){
-  $("payer").innerHTML=members.map((m,i)=>`<option value="${i}">${m}</option>`).join("");
-  $("forPeople").innerHTML=members.map((m,i)=>`<label style="display:inline-block;margin:4px 8px 4px 0"><input type="checkbox" value="${i}"> ${m}</label>`).join("");
-  $("date").value=new Date().toISOString().slice(0,10); render();
-}
-function render(){
-  const total=data.reduce((s,e)=>s+e.amount,0); $("total").textContent=money(total); $("count").textContent=data.length;
-  let bal=members.map(()=>0);
-  data.forEach(e=>{bal[e.payer]+=e.amount; e.people.forEach(i=>bal[i]-=e.amount/e.people.length)});
-  $("members").innerHTML=members.map((m,i)=>`<div class="member"><b>${m}</b><span class="${bal[i]>=0?'pos':'neg'}">${bal[i]>=0?'Gets ':'Pays '}${money(Math.abs(bal[i]))}</span></div>`).join("");
-  // Greedy settlement from net balances
-  let creditors=bal.map((v,i)=>({i,v})).filter(x=>x.v>0.005).sort((a,b)=>b.v-a.v);
-  let debtors=bal.map((v,i)=>({i,v:-v})).filter(x=>x.v>0.005).sort((a,b)=>b.v-a.v);
-  let out=[];
-  while(creditors.length&&debtors.length){
-    let c=creditors[0],d=debtors[0],x=Math.min(c.v,d.v);
-    out.push(`<div class="card" style="margin:7px 0"><b>${members[d.i]} → ${members[c.i]}</b> <span class="amount">${money(x)}</span></div>`);
-    c.v-=x; d.v-=x; if(c.v<.01)creditors.shift(); if(d.v<.01)debtors.shift();
-  }
-  $("debts").innerHTML=out.join("")||'<div class="card">সবাই settled 🎉</div>';
-  $("history").innerHTML=data.slice().reverse().map((e,idx)=>{
-    const real=data.length-1-idx;
-    return `<div class="expense"><div><b>${e.reason||"Expense"}</b><br><small>${e.date} · Paid by ${members[e.payer]} · For ${e.people.map(i=>members[i]).join(", ")}</small>${e.note?`<br><small>${e.note}</small>`:""}${e.photo?`<br><img class="receipt" src="${e.photo}">`:""}</div><div><div class="amount">${money(e.amount)}</div><button class="secondary" onclick="editExpense(${real})">Edit</button> <button class="danger" onclick="deleteExpense(${real})">Delete</button></div></div>`
-  }).join("")||'<div class="card">No expenses yet.</div>';
-}
-function openModal(index=null){
- editing=index; photoData=null; $("preview").hidden=true; $("modalTitle").textContent=index===null?"Add Expense":"Edit Expense";
- if(index!==null){let e=data[index];$("payer").value=e.payer;$("amount").value=e.amount;$("reason").value=e.reason;$("date").value=e.date;$("note").value=e.note||"";document.querySelectorAll("#forPeople input").forEach(x=>x.checked=e.people.includes(+x.value)); if(e.photo){$("preview").src=e.photo;$("preview").hidden=false;photoData=e.photo}}
- else{$("amount").value="";$("reason").value="";$("note").value="";document.querySelectorAll("#forPeople input").forEach(x=>x.checked=false)}
- $("overlay").style.display="block";
-}
-function closeModal(){$("overlay").style.display="none"}
-$("photo").addEventListener("change",e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{$("preview").src=r.result;$("preview").hidden=false;photoData=r.result};r.readAsDataURL(f)});
-function saveExpense(){
- let people=[...document.querySelectorAll("#forPeople input:checked")].map(x=>+x.value), amount=Number($("amount").value);
- if(!amount||amount<0||!people.length){alert("Amount এবং অন্তত একজন person নির্বাচন করুন.");return}
- let e={payer:+$("payer").value,amount,people,reason:$("reason").value.trim(),date:$("date").value,note:$("note").value.trim(),photo:photoData};
- if(editing===null)data.push(e);else data[editing]=e; save(); closeModal(); render();
-}
-function editExpense(i){openModal(i)}
-function deleteExpense(i){if(confirm("Delete this expense?")){data.splice(i,1);save();render()}}
-function clearAll(){if(confirm("সব expense মুছে ফেলবেন?")){data=[];save();render()}}
-function exportData(){let blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="our-house-backup.json";a.click()}
-$("importFile").addEventListener("change",e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{data=JSON.parse(r.result);save();render();alert("Restored successfully")}catch{alert("Invalid backup file")}};r.readAsText(f)});
-init();
-</script>
-<script>if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(console.error));}</script></body>
-</html>
+<div id="paymodal" class="overlay"><div class="modal"><h2>Record Payment</h2>
+<div class="row"><div class="field"><label>From</label><select id="from"></select></div><div class="field"><label>To</label><select id="to"></select></div></div>
+<div class="row"><div class="field"><label>Amount</label><input id="payamt" type="number" min="0"></div><div class="field"><label>Date</label><input id="paydate" type="date"></div></div>
+<div class="field"><label>Note</label><input id="paynote"></div><button class="secondary" onclick="payClose()">Cancel</button> <button class="primary" onclick="savePayment()">Save</button></div></div>
+
+<script type="module">
+import{initializeApp}from"https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+import{getAuth,signInAnonymously}from"https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import{getDatabase,ref,set,onValue,remove}from"https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+
+/* Add your Firebase Web config here for 6-phone sync. */
+const firebaseConfig={
+apiKey:"AIzaSyAe9oS7FOni6Dy70PJh7StskBmK76po7C4",
+authDomain:"our-house-fc269.firebaseapp.com",
+databaseURL:"https://our-house-fc269-default-rtdb.firebaseio.com/",
+projectId:"our-house-fc269",
+storageBucket:"our-house-fc269.firebasestorage.app",
+messagingSenderId:"240747305839",
+appId:"1:240747305839:web:5cca0de32b311eac6e669a"
+};
+
+let members=JSON.parse(localStorage.members||"null")||["RAFID","MOMIN","SEFINE","RAFAT","KAYES","MAHI"];
+let expenses=JSON.parse(localStorage.expenses||"[]"),payments=JSON.parse(localStorage.payments||"[]"),editId=null,photo=null,db=null,house="";
+const $=x=>document.getElementById(x),today=()=>new Date().toISOString().slice(0,10),money=x=>"৳"+Number(x||0).toLocaleString("en-BD",{maximumFractionDigits:2});
+function persist(){localStorage.members=JSON.stringify(members);localStorage.expenses=JSON.stringify(expenses);localStorage.payments=JSON.stringify(payments)}
+function opts(){let s=members.map((m,i)=>`<option value="${i}">${m}</option>`).join("");$("payer").innerHTML=$("from").innerHTML=$("to").innerHTML=s;$("people").innerHTML=members.map((m,i)=>`<label><input type="checkbox" value="${i}"> ${m}</label>`).join("");$("memberSettings").innerHTML=members.map((m,i)=>`<div class="row"><input id="m${i}" value="${m}"><button class="secondary" onclick="rename(${i})">Save</button></div>`).join("")}
+function balances(){let b=members.map(()=>0);expenses.forEach(e=>{b[e.payer]+=e.amount;(e.people||[]).forEach(i=>b[i]-=e.amount/e.people.length)});payments.forEach(p=>{b[p.from]+=p.amount;b[p.to]-=p.amount});return b}
+function render(){persist();opts();let b=balances(),total=expenses.reduce((s,e)=>s+e.amount,0);$("total").textContent=money(total);$("count").textContent=expenses.length;$("members").innerHTML=members.map((m,i)=>`<div class="member"><b>${m}</b><span class="${b[i]>=0?"good":"bad"}">${b[i]>=0?"Gets ":"Pays "}${money(Math.abs(b[i]))}</span></div>`).join("");let c=b.map((v,i)=>({i,v})).filter(x=>x.v>.01),d=b.map((v,i)=>({i,v:-v})).filter(x=>x.v>.01),out=[];while(c.length&&d.length){let a=c[0],z=d[0],x=Math.min(a.v,z.v);out.push(`<div class="card" style="margin:7px 0"><b>${members[z.i]} → ${members[a.i]}</b> ${money(x)}</div>`);a.v-=x;z.v-=x;if(a.v<.01)c.shift();if(z.v<.01)d.shift()}$("debts").innerHTML=out.join("")||'<div class="card">সবাই settled 🎉</div>';renderHistory();renderReport()}
+function renderHistory(){let q=($("search")?.value||"").toLowerCase(),a=[...expenses.map(e=>({...e,t:"e"})),...payments.map(e=>({...e,t:"p"}))].filter(e=>(e.reason||e.note||"").toLowerCase().includes(q)).sort((a,b)=>b.date.localeCompare(a.date));$("historyList").innerHTML=a.map(e=>e.t==="p"?`<div class="item"><div>✅ ${members[e.from]} → ${members[e.to]}<br><span class="muted">${e.date} ${e.note||""}</span></div><b>${money(e.amount)}</b></div>`:`<div class="item"><div><b>${e.reason||"Expense"}</b><br><span class="muted">${e.date} · ${members[e.payer]} · ${(e.people||[]).map(i=>members[i]).join(", ")}</span>${e.photo?`<br><img class="receipt" src="${e.photo}">`:""}</div><div><b>${money(e.amount)}</b><br><button class="secondary" onclick="expenseModal('${e.id}')">Edit</button> <button class="danger" onclick="delExpense('${e.id}')">Delete</button></div></div>`).join("")||'<div class="card">No records.</div>'}
+function renderReport(){let mo=$("month")?.value||today().slice(0,7),a=expenses.filter(e=>e.date.startsWith(mo)),t=a.reduce((s,e)=>s+e.amount,0),by=members.map(()=>0);a.forEach(e=>by[e.payer]+=e.amount);$("reportList").innerHTML=`<div class="card"><b>Total: ${money(t)}</b><br>${a.length} expenses</div>`+members.map((m,i)=>`<div style="margin:10px 0">${m}: ${money(by[i])}<div class="bar"><i style="width:${t?100*by[i]/t:0}%"></i></div></div>`).join("")}
+window.tab=t=>["home","history","report","settings"].forEach(x=>$(x).classList.toggle("hidden",x!==t));
+window.expenseModal=id=>{editId=id||null;photo=null;$("mtitle").textContent=id?"Edit Expense":"Add Expense";$("date").value=today();$("amount").value="";$("reason").value="";$("note").value="";document.querySelectorAll("#people input").forEach(x=>x.checked=false);$("preview").classList.add("hidden");if(id){let e=expenses.find(x=>x.id===id);Object.assign($("amount"),{value:e.amount});$("payer").value=e.payer;$("reason").value=e.reason;$("date").value=e.date;$("note").value=e.note||"";(e.people||[]).forEach(i=>document.querySelector(`#people input[value="${i}"]`).checked=true);if(e.photo){photo=e.photo;$("preview").src=e.photo;$("preview").classList.remove("hidden")}}$("modal").style.display="block"};
+window.closeModal=()=>$("modal").style.display="none";
+$("photo").onchange=e=>{let f=e.target.files[0];if(f){let r=new FileReader();r.onload=()=>{photo=r.result;$("preview").src=photo;$("preview").classList.remove("hidden")};r.readAsDataURL(f)}};
+window.saveExpense=()=>{let people=[...document.querySelectorAll("#people input:checked")].map(x=>+x.value),amount=+$("amount").value;if(!amount||!people.length)return alert("Select amount and at least one person.");let e={id:editId||crypto.randomUUID(),payer:+$("payer").value,amount,people,reason:$("reason").value.trim(),date:$("date").value,note:$("note").value.trim(),photo,updatedAt:Date.now()};let i=expenses.findIndex(x=>x.id===e.id);i<0?expenses.push(e):expenses[i]=e;persist();closeModal();render();sync("expenses/"+e.id,e)};
+window.delExpense=id=>{if(confirm("Delete?")){expenses=expenses.filter(e=>e.id!==id);persist();render();if(db)remove(ref(db,`houses/${house}/expenses/${id}`))}};
+window.paymentModal=()=>{$("paydate").value=today();$("payamt").value="";$("paynote").value="";$("paymodal").style.display="block"};window.payClose=()=>$("paymodal").style.display="none";
+window.savePayment=()=>{let a=+$("payamt").value,f=+$("from").value,t=+$("to").value;if(!a||f===t)return alert("Invalid payment.");let p={id:crypto.randomUUID(),from:f,to:t,amount:a,date:$("paydate").value,note:$("paynote").value};payments.push(p);persist();payClose();render();sync("payments/"+p.id,p)};
+window.rename=i=>{let v=$("m"+i).value.trim().toUpperCase();if(v){members[i]=v;persist();render();sync("members",members)}};
+window.setPin=()=>{let p=$("pin").value;if(!/^\d{4,6}$/.test(p))return alert("Use 4–6 digits.");localStorage.pin=p;$("pin").value="";alert("PIN saved.")};
+window.backup=()=>{let b=new Blob([JSON.stringify({members,expenses,payments},null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="our-house-backup.json";a.click()};
+$("file").onchange=e=>{let r=new FileReader();r.onload=()=>{try{let x=JSON.parse(r.result);members=x.members||members;expenses=x.expenses||[];payments=x.payments||[];persist();render()}catch{alert("Invalid backup")}};r.readAsText(e.target.files[0])};
+async function connect(){house=$("houseCode").value.trim();if(!house)return alert("Enter a House Code.");if(firebaseConfig.apiKey.startsWith("PASTE_"))return alert("Firebase config is not added. Follow README.");try{let app=initializeApp(firebaseConfig),auth=getAuth(app);db=getDatabase(app);await signInAnonymously(auth);localStorage.house=house;$("status").textContent="🟢 Sync connected";onValue(ref(db,`houses/${house}`),s=>{let v=s.val();if(v){if(v.members)members=Object.values(v.members);if(v.expenses)expenses=Object.values(v.expenses);if(v.payments)payments=Object.values(v.payments);persist();render()}});await set(ref(db,`houses/${house}/members`),members)}catch(e){alert(e.message)}}
+function sync(path,v){if(db&&house)set(ref(db,`houses/${house}/${path}`),v)}
+$("month").value=today().slice(0,7);$("houseCode").value=localStorage.house||"";render();
+</script></body></html>
