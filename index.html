@@ -156,10 +156,11 @@ setTimeout(()=>{
 </script>
 
 <script type="module">
-window.__ourHouseModuleLoaded=true;
 import {initializeApp,getApps,getApp} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import {getAuth,signInAnonymously,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import {getDatabase,ref,set,onValue,remove} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+
+window.__ourHouseModuleLoaded=true;
 
 const firebaseConfig={
   apiKey:"AIzaSyAe9oS7FOni6Dy70PJh7StskBmK76po7C4",
@@ -496,6 +497,10 @@ function sync(path,v){
 $("month").value=today().slice(0,7);
 $("houseCode").value=localStorage.house||"";
 render();
+
+$("connectBtn").addEventListener("click",()=>{
+  window.connect();
+});
 </script>
 </body>
 </html>
