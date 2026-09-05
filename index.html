@@ -106,6 +106,12 @@ nav{display:flex;gap:7px;overflow:auto}nav button{white-space:nowrap}
 <button class="secondary" onclick="$('file').click()">Import JSON</button>
 <input id="file" type="file" accept=".json" hidden>
 </section>
+
+<section>
+<h2>🗑️ Start Fresh</h2>
+<p class="muted">Delete all expenses, payments, and synced data for the current House Code.</p>
+<button class="danger" onclick="startFresh()">🗑️ Start Fresh / Delete All Data</button>
+</section>
 </div>
 </main>
 
@@ -415,6 +421,59 @@ $("file").onchange=e=>{
     }
   };
   r.readAsText(f);
+};
+
+window.startFresh=async function startFresh(){
+  const code=$("houseCode").value.trim() || house || localStorage.house || "";
+
+  const confirmed=confirm(
+    "⚠️ START FRESH?\n\n" +
+    "This will permanently delete ALL expenses, payments, and member data " +
+    "for this House Code, both on this device and in Firebase.\n\n" +
+    "This cannot be undone.\n\nContinue?"
+  );
+
+  if(!confirmed)return;
+
+  try{
+    $("status").textContent="🟡 Deleting all data...";
+    setSyncStatus("Deleting all local and Firebase data...");
+
+    if(unsubscribe){
+      unsubscribe();
+      unsubscribe=null;
+    }
+
+    // Delete the complete Firebase house if connected.
+    if(db && code){
+      await remove(ref(db,`houses/${code}`));
+    }
+
+    // Reset the app locally.
+    members=["RAFID","MOMIN","SEFINE","RAFAT","KAYES","MAHI"];
+    expenses=[];
+    payments=[];
+
+    localStorage.removeItem("expenses");
+    localStorage.removeItem("payments");
+    localStorage.removeItem("members");
+    localStorage.removeItem("house");
+    localStorage.removeItem("pin");
+
+    house="";
+    connected=false;
+
+    $("houseCode").value="";
+    $("pin").value="";
+
+    render();
+
+    $("status").textContent="⚪ Fresh start";
+    setSyncStatus("All data deleted. The app is ready to start fresh.");
+    alert("✅ All data has been deleted. Your app is fresh.");
+  }catch(e){
+    showError(e);
+  }
 };
 
 function showError(e){
